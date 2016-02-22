@@ -17,7 +17,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -78,7 +81,7 @@ public class AppTest {
         }
     }
 
-//    @Test
+    @Test
     public void updateCustomer() {
         expectedCustomer.setBalance(2000_00);
         expectedCustomer.setOrganizationName("Updated Organization Name");
