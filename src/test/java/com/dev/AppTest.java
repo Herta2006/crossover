@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfig.class)
+@ContextConfiguration(classes = TestContextConfig.class)
 @Transactional
 public class AppTest {
     @Autowired
@@ -50,26 +50,24 @@ public class AppTest {
         // Hibernate as a persistence provider has a bug:
         // findOne returns duplicates of SalesOrder
         // The same problem is https://jira.spring.io/browse/DATAJPA-709
-        List<Customer> customers = customerRepository.findAll();
-        assertTrue(customers.size() == 1);
-        Customer actual = customers.get(0);
-        assertEquals(expectedCustomer.getOrganizationName(), actual.getOrganizationName());
-        assertEquals(1000_00L, actual.getBalance());
-        assertEquals(2, actual.getSalesOrders().size());
+        Customer actual = customerRepository.findOne(expectedCustomer.getId());
+        assertEquals("Organization Name", actual.getOrganizationName());
+        assertTrue(1000_00L == actual.getBalance());
+        assertTrue(2 == actual.getSalesOrders().size());
 
         assertEquals(2, actual.getSalesOrders().get(0).getOrderLines().size());
         Map<Product, Integer> productsQuantity = actual.getSalesOrders().get(0).getOrderLines().get(0).getProductQuantity();
         assertEquals(3, productsQuantity.size());
         // Assertion for product's fields as well because, they used by map -> in hash code and in equals methods
         for (Product product : productsQuantity.keySet()) {
-            assertEquals(new Integer(product.getTitle().replace("Product", "")), productsQuantity.get(product));
+            assertEquals(new Integer(product.getDescription().replace("Product", "")), productsQuantity.get(product));
         }
 
         productsQuantity = actual.getSalesOrders().get(0).getOrderLines().get(1).getProductQuantity();
         assertEquals(2, productsQuantity.size());
         // Assertion for product's fields as well because, they used by map -> in hash code and in equals methods
         for (Product product : productsQuantity.keySet()) {
-            assertEquals(new Integer(product.getTitle().replace("Product", "")), productsQuantity.get(product));
+            assertEquals(new Integer(product.getDescription().replace("Product", "")), productsQuantity.get(product));
         }
 
         assertEquals(1, actual.getSalesOrders().get(1).getOrderLines().size());
@@ -77,7 +75,7 @@ public class AppTest {
         // Assertion for product's fields as well because, they used by map -> in hash code and in equals methods
         assertEquals(1, productsQuantity.size());
         for (Product product : productsQuantity.keySet()) {
-            assertEquals(new Integer(product.getTitle().replace("Product", "")), productsQuantity.get(product));
+            assertEquals(new Integer(product.getDescription().replace("Product", "")), productsQuantity.get(product));
         }
     }
 
@@ -87,39 +85,41 @@ public class AppTest {
         expectedCustomer.setOrganizationName("Updated Organization Name");
 //        Map<Product, Integer> productQuantity = expectedCustomer.getSalesOrders().get(0).getOrderLines().get(0).getProductQuantity();
 //        Product product = productQuantity.keySet().iterator().next();
-//        product.setTitle("Updated Product Title");
+//        product.setDescription("Updated Product Title");
 //        product.setPrice(1000_00L);
 //        product.setInventoryBalance(2);
 //        productQuantity.put(product, 10);
-        assertTrue(2000_00 == expectedCustomer.getBalance());
-        assertEquals("Updated Organization Name", expectedCustomer.getOrganizationName());
+        customerRepository.saveAndFlush(expectedCustomer);
+        Customer actualCustomer = customerRepository.findOne(expectedCustomer.getId());
+        assertTrue(2000_00 == actualCustomer.getBalance());
+        assertEquals("Updated Organization Name", actualCustomer.getOrganizationName());
 //        productQuantity = savedCustomer.getSalesOrders().get(0).getOrderLines().get(0).getProductQuantity();
 //        product = productQuantity.keySet().iterator().next();
-//        assertEquals("Updated Product Title", product.getTitle());
+//        assertEquals("Updated Product Title", product.getDescription());
 //        assertTrue(1000_00L == product.getPrice());
 //        assertTrue(2 == product.getInventoryBalance());
     }
 
     @Test
     public void deleteCustomer() {
-        customerRepository.delete(1L);
+        customerRepository.delete("1C");
         List<Customer> customers = customerRepository.findAll();
         assertTrue(customers.isEmpty());
     }
 
     @Before
     public void prepareDatabase() {
-        Product product1 = new Product("Product1", 10L, 1);
+        Product product1 = new Product("P1", "Product1", 10L, 1);
         productRepository.save(product1);
-        Product product2 = new Product("Product2", 20L, 2);
+        Product product2 = new Product("P2", "Product2", 20L, 2);
         productRepository.save(product2);
-        Product product3 = new Product("Product3", 30L, 3);
+        Product product3 = new Product("P3", "Product3", 30L, 3);
         productRepository.save(product3);
-        Product product4 = new Product("Product4", 40L, 4);
+        Product product4 = new Product("P4", "Product4", 40L, 4);
         productRepository.save(product4);
-        Product product5 = new Product("Product5", 50L, 5);
+        Product product5 = new Product("P5", "Product5", 50L, 5);
         productRepository.save(product5);
-        Product product6 = new Product("Product6", 60L, 6);
+        Product product6 = new Product("P6", "Product6", 60L, 6);
         productRepository.save(product6);
 
         OrderLine orderLine1 = new OrderLine();
@@ -150,7 +150,9 @@ public class AppTest {
         salesOrder2.setOrderLines(singletonList(orderLine3));
         salesOrderRepository.save(salesOrder2);
 
-        expectedCustomer = new Customer("Crossover Inc");
+        expectedCustomer = new Customer();
+        expectedCustomer.setCode("1C");
+        expectedCustomer.setOrganizationName("Organization Name");
         expectedCustomer.setBalance(1000_00L); //1000 euro
         expectedCustomer.setSalesOrders(new ArrayList<>(asList(salesOrder1, salesOrder2)));
         Customer savedCustomer = customerRepository.saveAndFlush(expectedCustomer);

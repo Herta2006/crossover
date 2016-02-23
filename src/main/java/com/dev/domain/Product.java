@@ -3,18 +3,15 @@ package com.dev.domain;
 import javax.persistence.*;
 import java.io.Serializable;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Table(name = "PRODUCTS")
 public class Product implements Serializable {
     @Id
-    @GeneratedValue(strategy = IDENTITY)
     @Column(name = "ID", unique = true)
-    private long id;
+    private String id;
 
-    @Column(name = "TITLE")
-    private String title;
+    @Column(name = "DESCRIPTION")
+    private String description;
 
     @Column(name = "PRICE_IN_EURO_CENTS")
     private Long price;
@@ -25,33 +22,33 @@ public class Product implements Serializable {
     public Product() {
     }
 
-    public Product(String title, long price, int inventoryBalance) {
-        this.title = title;
+    public Product(String description, long price, int inventoryBalance) {
+        this.description = description;
         this.price = price;
         this.inventoryBalance = inventoryBalance;
     }
 
-    public Product(long id, String title, long price, int inventoryBalance) {
+    public Product(String id, String description, long price, int inventoryBalance) {
         this.id = id;
-        this.title = title;
+        this.description = description;
         this.price = price;
         this.inventoryBalance = inventoryBalance;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getDescription() {
+        return description;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Long getPrice() {
@@ -77,13 +74,13 @@ public class Product implements Serializable {
 
         Product product = (Product) o;
 
-        return id == product.id;
+        return id != null ? id.equals(product.id) : product.id == null;
 
     }
 
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return id != null ? id.hashCode() : 0;
     }
 }
 

@@ -1,6 +1,7 @@
 package com.dev.domain;
 
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.List;
 
@@ -10,16 +11,25 @@ import static javax.persistence.CascadeType.REFRESH;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.IDENTITY;
 
+@XmlRootElement
 @Entity
 @Table(name = "CUSTOMERS")
 public class Customer implements Serializable {
     @Id
-    @GeneratedValue(strategy = IDENTITY)
     @Column(name = "ID", unique = true)
-    private long id;
+    private String id;
 
     @Column(name = "ORGANIZATION_NAME")
     private String organizationName;
+
+    @Column(name = "ADDRESS")
+    private String address;
+
+    @Column(name = "PHONE1")
+    private String phone1;
+
+    @Column(name = "PHONE2")
+    private String phone2;
 
     @Column(name = "BALANCE_IN_EURO_CENTS")
     private long balance;
@@ -35,11 +45,11 @@ public class Customer implements Serializable {
     public Customer() {
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setCode(String id) {
         this.id = id;
     }
 
@@ -53,6 +63,30 @@ public class Customer implements Serializable {
 
     public void setOrganizationName(String organizationName) {
         this.organizationName = organizationName;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhone1() {
+        return phone1;
+    }
+
+    public void setPhone1(String phone1) {
+        this.phone1 = phone1;
+    }
+
+    public String getPhone2() {
+        return phone2;
+    }
+
+    public void setPhone2(String phone2) {
+        this.phone2 = phone2;
     }
 
     public long getBalance() {
