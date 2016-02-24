@@ -51,7 +51,7 @@ public class Product implements Serializable {
         this.description = description;
     }
 
-    public Long getPrice() {
+    public long getPrice() {
         return price;
     }
 

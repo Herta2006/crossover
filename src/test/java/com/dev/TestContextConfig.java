@@ -36,7 +36,7 @@ public class TestContextConfig {
         Properties jpaProperties = new Properties();
         jpaProperties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         jpaProperties.put("hibernate.show_sql", "true");
-//        jpaProperties.put("hibernate.hbm2ddl.auto", "create");
+        jpaProperties.put("hibernate.hbm2ddl.auto", "create");
         emf.setJpaProperties(jpaProperties);
         emf.setPackagesToScan("com.dev");
         return emf;

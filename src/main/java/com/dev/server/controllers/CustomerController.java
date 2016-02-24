@@ -27,13 +27,13 @@ public class CustomerController {
 
     @RequestMapping(method = GET)
     public ResponseEntity<List<Customer>> getCustomers() {
-        List<Customer> users = salesResourcesService.findAll(Customer.class);
-        if (users.isEmpty()) return new ResponseEntity<>(NO_CONTENT);
-        return new ResponseEntity<>(users, OK);
+        List<Customer> customers = salesResourcesService.findAll(Customer.class);
+        if (customers.isEmpty()) return new ResponseEntity<>(NO_CONTENT);
+        return new ResponseEntity<>(customers, OK);
     }
 
     @RequestMapping(method = POST)
-    public ResponseEntity<Void> createUser(@RequestBody Customer customer, UriComponentsBuilder ucBuilder) {
+    public ResponseEntity<Void> createCustomer(@RequestBody Customer customer, UriComponentsBuilder ucBuilder) {
         if (salesResourcesService.findOne(Customer.class, customer.getId()) != null)
             return new ResponseEntity<>(CONFLICT);
         salesResourcesService.save(customer);

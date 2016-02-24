@@ -1,6 +1,7 @@
 package com.dev.server.services;
 
 import com.dev.domain.Customer;
+import com.dev.domain.SalesOrder;
 
 import java.util.List;
 

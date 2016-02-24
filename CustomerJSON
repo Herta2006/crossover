@@ -1,0 +1,43 @@
+[
+  {
+    "id": "1C",
+    "organizationName": "Organization Name",
+    "address": "Address",
+    "phone1": "123",
+    "phone2": "321",
+    "balance": 100000,
+    "salesOrders": [
+      {
+        "id": 1,
+        "orderLines": [
+          {
+            "id": 1,
+            "productQuantity": {
+              "com.dev.domain.Product@9e1": 1,
+              "com.dev.domain.Product@9e2": 2,
+              "com.dev.domain.Product@9e3": 3
+            }
+          },
+          {
+            "id": 2,
+            "productQuantity": {
+              "com.dev.domain.Product@9e4": 4,
+              "com.dev.domain.Product@9e5": 5
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "orderLines": [
+          {
+            "id": 3,
+            "productQuantity": {
+              "com.dev.domain.Product@9e6": 6
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
