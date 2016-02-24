@@ -19,20 +19,20 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @SuppressWarnings("unchecked")
 @RestController
-@RequestMapping(value = "/customers")
+@RequestMapping(value = "/customers", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class CustomerController {
 
     @Autowired
     private SalesResourcesService salesResourcesService;
 
-    @RequestMapping(method = GET, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(method = GET)
     public ResponseEntity<List<Customer>> getCustomers() {
         List<Customer> users = salesResourcesService.findAll(Customer.class);
         if (users.isEmpty()) return new ResponseEntity<>(NO_CONTENT);
         return new ResponseEntity<>(users, OK);
     }
 
-    @RequestMapping(method = POST, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(method = POST)
     public ResponseEntity<Void> createUser(@RequestBody Customer customer, UriComponentsBuilder ucBuilder) {
         if (salesResourcesService.findOne(Customer.class, customer.getId()) != null)
             return new ResponseEntity<>(CONFLICT);
@@ -42,14 +42,14 @@ public class CustomerController {
         return new ResponseEntity<>(headers, CREATED);
     }
 
-    @RequestMapping(value = "/{code}", method = GET, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{code}", method = GET)
     public ResponseEntity<Customer> getCustomer(@PathVariable("code") String code) {
         Customer customer = (Customer) salesResourcesService.findOne(Customer.class, code);
         if (customer == null) return new ResponseEntity<>(NOT_FOUND);
         return new ResponseEntity<>(customer, OK);
     }
 
-    @RequestMapping(value = "/{code}", method = PUT, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{code}", method = PUT)
     public ResponseEntity<Customer> updateCustomer(@PathVariable("code") String code, @RequestBody Customer customer) {
         Customer currentCustomer = (Customer) salesResourcesService.findOne(Customer.class, code);
         if (currentCustomer == null) return new ResponseEntity<>(NOT_FOUND);
@@ -61,7 +61,7 @@ public class CustomerController {
         return new ResponseEntity<>(savedCustomer, OK);
     }
 
-    @RequestMapping(value = "/{code}", method = DELETE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{code}", method = DELETE)
     public ResponseEntity<Customer> deleteCustomer(@PathVariable("code") String code) {
         Customer customer = (Customer) salesResourcesService.findOne(Customer.class, code);
         if (customer == null) return new ResponseEntity<>(NOT_FOUND);
@@ -69,7 +69,7 @@ public class CustomerController {
         return new ResponseEntity<>(NO_CONTENT);
     }
 
-    @RequestMapping(method = DELETE, produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
+    @RequestMapping(method = DELETE)
     public ResponseEntity<Customer> deleteAllCustomers() {
         salesResourcesService.deleteAll(Customer.class);
         return new ResponseEntity<>(NO_CONTENT);
