@@ -1,4 +1,4 @@
-package com.dev.repositories;
+package com.dev.server.repositories;
 
 import com.dev.domain.SalesOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
