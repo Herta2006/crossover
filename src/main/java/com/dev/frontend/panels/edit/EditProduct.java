@@ -87,7 +87,7 @@ public class EditProduct extends EditContentPanel {
         Product product = new Product();
         product.setId(txtCode.getText());
         product.setDescription(txtDescription.getText());
-        product.setPrice(Long.parseLong(txtPrice.getText()));
+        product.setPrice((long) (Double.parseDouble(txtPrice.getText()) * 100));
         product.setInventoryBalance(Integer.parseInt(txtQuantity.getText()));
         return product;
     }

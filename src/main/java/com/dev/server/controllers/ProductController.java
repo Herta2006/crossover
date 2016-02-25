@@ -57,7 +57,7 @@ public class ProductController {
         currentProduct.setPrice(product.getPrice());
         currentProduct.setInventoryBalance(product.getInventoryBalance());
         Product savedProduct = (Product) salesResourcesService.save(currentProduct);
-        return new ResponseEntity<>(savedProduct, OK);
+        return new ResponseEntity<>(savedProduct, ACCEPTED);
     }
 
     @RequestMapping(value = "/{code}", method = DELETE)

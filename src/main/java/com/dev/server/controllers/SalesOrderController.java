@@ -57,7 +57,7 @@ public class SalesOrderController {
         currentSalesOrder.setCustomerId(salesOrder.getCustomerId());
         currentSalesOrder.setOrderLines(salesOrder.getOrderLines());
         SalesOrder savedSalesOrder = (SalesOrder) salesResourcesService.save(currentSalesOrder);
-        return new ResponseEntity<>(savedSalesOrder, OK);
+        return new ResponseEntity<>(savedSalesOrder, ACCEPTED);
     }
 
     @RequestMapping(value = "/{id}", method = DELETE)

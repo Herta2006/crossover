@@ -16,7 +16,7 @@ public class EditContainer extends JPanel implements ActionListener, HasBusiness
 
     private static final long serialVersionUID = -7388350255798160262L;
     private JToolBar toolbar;
-    private String SAVE_ACTION = "save";
+    private String SAVE_ACTION = "saveOrUpdate";
     private String DELETE_ACTION = "delete";
     private String CLOSE_ACTION = "close";
     private int objectType;
@@ -59,7 +59,7 @@ public class EditContainer extends JPanel implements ActionListener, HasBusiness
         if (actionCommand.equals(SAVE_ACTION)) {
             Object currentObject = editPanel.guiToObject();
             try {
-                currentObject = Services.save(currentObject, objectType);
+                currentObject = Services.saveOrUpdate(currentObject, objectType);
                 editPanel.bindToGUI(currentObject);
             } catch (Exception ee) {
                 ee.printStackTrace();

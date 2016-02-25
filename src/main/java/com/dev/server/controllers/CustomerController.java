@@ -58,7 +58,7 @@ public class CustomerController {
         currentCustomer.setPhone2(customer.getPhone2());
         currentCustomer.setBalance(customer.getBalance());
         Customer savedCustomer = (Customer) salesResourcesService.save(currentCustomer);
-        return new ResponseEntity<>(savedCustomer, OK);
+        return new ResponseEntity<>(savedCustomer, ACCEPTED);
     }
 
     @RequestMapping(value = "/{code}", method = DELETE)

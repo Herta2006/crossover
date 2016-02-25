@@ -8,10 +8,7 @@ import com.dev.frontend.panels.ComboBoxItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
@@ -58,14 +55,15 @@ public class Services {
         return resources;
     }
 
-    public static Object save(Object object, int objectType) {
+    public static Object saveOrUpdate(Object object, int objectType) {
         try {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpEntityEnclosingRequestBase httpMethod = getHttpMethod(objectType, object);
             StringEntity input = createStringEntity(objectType, object);
+            httpMethod.addHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON_HEADER_VALUE);
             httpMethod.setEntity(input);
             HttpResponse response = httpClient.execute(httpMethod);
-            if (response.getStatusLine().getStatusCode() != 201) {
+            if (response.getStatusLine().getStatusCode() != 201 && response.getStatusLine().getStatusCode() != 202) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
             httpClient.getConnectionManager().shutdown();
@@ -75,13 +73,19 @@ public class Services {
         return object;
     }
 
+    private static String getId(Object object) {
+        if (object.getClass() == Product.class) return ((Product) object).getId();
+        if (object.getClass() == Customer.class) return ((Customer) object).getId();
+        if (object.getClass() == SalesOrder.class) return "" + ((SalesOrder) object).getId();
+        return "";
+    }
+
     private static HttpEntityEnclosingRequestBase getHttpMethod(int objectType, Object object) {
-        String resources = "";
-        if(object.getClass() == Product.class) {
-            resources += "products";
+        if (readRecordByCode(getId(object), objectType) == null) {
+            return new HttpPost(URL + getResourceName(objectType));
+        } else {
+            return new HttpPut(URL + getResourceName(objectType) + "/" + getId(object));
         }
-        HttpPost httpPost = new HttpPost(URL + getHttpMethod(objectType, object));
-        return null;
     }
 
     public static Object readRecordByCode(String code, int objectType) {
@@ -91,18 +95,18 @@ public class Services {
             HttpGet getRequest = new HttpGet(URL + getResourceName(objectType) + "/" + code);
             getRequest.addHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON_HEADER_VALUE);
             HttpResponse response = httpClient.execute(getRequest);
-            if (response.getStatusLine().getStatusCode() != 200) {
+
+            if (response.getStatusLine().getStatusCode() == 200) {
+                BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+                String jsonString = "";
+                String line;
+                while ((line = br.readLine()) != null) {
+                    jsonString += line;
+                }
+                retrievedResource = MAPPER.readValue(jsonString, getResourceClass(objectType));
+            } else if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 404) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
-
-            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-
-            String jsonString = "";
-            String line;
-            while ((line = br.readLine()) != null) {
-                jsonString += line;
-            }
-            retrievedResource = MAPPER.readValue(jsonString, getResourceClass(objectType));
             httpClient.getConnectionManager().shutdown();
         } catch (IOException e) {
             e.printStackTrace();
