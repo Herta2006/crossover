@@ -1,33 +1,37 @@
 package com.dev.frontend.panels.list;
 
-import java.util.List;
-
+import com.dev.domain.SalesOrder;
 import com.dev.frontend.services.Services;
 
+import java.util.List;
 
-public class SalesOrderDataModel extends ListDataModel
-{
-	private static final long serialVersionUID = 7526529951747614655L;
 
-	public SalesOrderDataModel() 
-	{
-		super(new String[]{"Order Number","Customer","Total Price"}, 0);
-	}
+public class SalesOrderDataModel extends ListDataModel {
+    private static final long serialVersionUID = 7526529951747614655L;
 
-	@Override
-	public int getObjectType() {
-		return Services.TYPE_SALESORDER;
-	}
+    public SalesOrderDataModel() {
+        super(new String[]{"Order Number", "Customer", "Total Price"}, 0);
+    }
 
-	@Override
-	public String[][] convertRecordsListToTableModel(List<Object> list) 
-	{
-		//TODO by the candidate
-		/*
-		 * This method use list returned by Services.listCurrentRecords and should convert it to array of rows
-		 * each row is another array of columns of the row
-		 */
-		String[][] sampleData = new String [][]{{"22423","(01)Customer 1","122.5"},{"22424","(02)Customer 2","3242.5"}};
-		return sampleData;
-	}
+    @Override
+    public int getObjectType() {
+        return Services.TYPE_SALES_ORDER;
+    }
+
+    @Override
+    public String[][] convertRecordsListToTableModel(List<Object> list) {
+        String[][] data = new String[list.size()][];
+        for (int i = 0; i < list.size(); i++) {
+            data[i] = covertFromSalesOrder((SalesOrder) list.get(i));
+        }
+        return data;
+    }
+
+    private String[] covertFromSalesOrder(SalesOrder salesOrder) {
+        String[] strings = new String[3];
+        strings[0] = "" + salesOrder.getId();
+        strings[1] = "(" + salesOrder.getCustomerId() + ")" + "Customer's Organization Name";
+        strings[2] = "122.5";
+        return strings;
+    }
 }

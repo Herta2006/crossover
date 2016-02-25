@@ -1,71 +1,212 @@
 package com.dev.frontend.services;
 
+import com.dev.domain.Customer;
+import com.dev.domain.OrderLine;
+import com.dev.domain.Product;
+import com.dev.domain.SalesOrder;
 import com.dev.frontend.panels.ComboBoxItem;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Services {
     public static final int TYPE_PRODUCT = 1;
     public static final int TYPE_CUSTOMER = 2;
-    public static final int TYPE_SALESORDER = 3;
+    public static final int TYPE_SALES_ORDER = 3;
+    public static final String URL = "http://localhost:8080/";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final String APPLICATION_JSON_HEADER_VALUE = "application/json";
+    public static final String CONTENT_TYPE_HEADER_NAME = "Content-Type";
 
+    public static List<Object> listCurrentRecords(int objectType) {
+        List<Object> resources = new ArrayList<>();
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpGet getRequest = new HttpGet(URL + getResourceName(objectType));
+            getRequest.addHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON_HEADER_VALUE);
+            HttpResponse response = httpClient.execute(getRequest);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+
+            String jsonString = "";
+            String line;
+            while ((line = br.readLine()) != null) {
+                jsonString += line;
+            }
+            TypeFactory typeFactory = TypeFactory.defaultInstance();
+            resources = MAPPER.readValue(jsonString, typeFactory.constructCollectionType(List.class, getResourceClass(objectType)));
+            httpClient.getConnectionManager().shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return resources;
+    }
 
     public static Object save(Object object, int objectType) {
-        //TODO by the candidate
-        /*
-		 * This method is called eventually after you click save on any edit screen
-		 * object parameter is the return object from calling method guiToObject on edit screen
-		 * and the type is identifier of the object type and may be TYPE_PRODUCT ,
-		 * TYPE_CUSTOMER or TYPE_SALESORDER 
-		 */
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpEntityEnclosingRequestBase httpMethod = getHttpMethod(objectType, object);
+            StringEntity input = createStringEntity(objectType, object);
+            httpMethod.setEntity(input);
+            HttpResponse response = httpClient.execute(httpMethod);
+            if (response.getStatusLine().getStatusCode() != 201) {
+                throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+            }
+            httpClient.getConnectionManager().shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return object;
+    }
+
+    private static HttpEntityEnclosingRequestBase getHttpMethod(int objectType, Object object) {
+        String resources = "";
+        if(object.getClass() == Product.class) {
+            resources += "products";
+        }
+        HttpPost httpPost = new HttpPost(URL + getHttpMethod(objectType, object));
         return null;
     }
 
     public static Object readRecordByCode(String code, int objectType) {
-        //TODO by the candidate
-		/*
-		 * This method is called when you select record in list view of any entity
-		 * and also called after you save a record to re-bind the record again
-		 * the code parameter is the first column of the row you have selected
-		 * and the type is identifier of the object type and may be TYPE_PRODUCT ,
-		 * TYPE_CUSTOMER or TYPE_SALESORDER */
-        return null;
+        Object retrievedResource = null;
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpGet getRequest = new HttpGet(URL + getResourceName(objectType) + "/" + code);
+            getRequest.addHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON_HEADER_VALUE);
+            HttpResponse response = httpClient.execute(getRequest);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+
+            String jsonString = "";
+            String line;
+            while ((line = br.readLine()) != null) {
+                jsonString += line;
+            }
+            retrievedResource = MAPPER.readValue(jsonString, getResourceClass(objectType));
+            httpClient.getConnectionManager().shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return retrievedResource;
     }
 
     public static boolean deleteRecordByCode(String code, int objectType) {
-        //TODO by the candidate
-		/*
-		 * This method is called when you click delete button on an edit view
-		 * the code parameter is the code of (Customer - PRoduct ) or order number of Sales Order
-		 * and the type is identifier of the object type and may be TYPE_PRODUCT ,
-		 * TYPE_CUSTOMER or TYPE_SALESORDER
-		 */
+        try {
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpDelete getRequest = new HttpDelete(URL + getResourceName(objectType) + "/" + code);
+            getRequest.addHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON_HEADER_VALUE);
+            HttpResponse response = httpClient.execute(getRequest);
+            if (response.getStatusLine().getStatusCode() != 204) {
+                throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+            }
+            httpClient.getConnectionManager().shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
-    public static List<Object> listCurrentRecords(int objectType) {
-        //TODO by the candidate
-		/*
-		 * This method is called when you open any list screen and should return all records of the specified type
-		 */
-        return new ArrayList<Object>();
-    }
-
-    public static List<ComboBoxItem> listCurrentRecordRefernces(int objectType) {
-        //TODO by the candidate
-		/*
-		 * This method is called when a Combo Box need to be initialized and should
-		 * return list of ComboBoxItem which contains code and description/name for all records of specified type
-		 */
-        return new ArrayList<ComboBoxItem>();
+    public static List<ComboBoxItem> listCurrentRecordReferences(int objectType) {
+        return listCurrentRecords(objectType)
+                .stream()
+                .map(obj -> new ComboBoxItem("Key", "Value"))
+                .collect(Collectors.toList());
     }
 
     public static double getProductPrice(String productCode) {
-        //TODO by the candidate
-		/*
-		 * This method is used to get unit price of product with the code passed as a parameter
-		 */
-        return 1;
+        Product product = (Product) readRecordByCode(productCode, TYPE_PRODUCT);
+        return product.getPrice();
+    }
+
+    private static StringEntity createStringEntity(int objectType, Object object) throws UnsupportedEncodingException {
+        StringEntity input;
+        switch (objectType) {
+            case 2:
+                Customer customer = (Customer) object;
+                input = new StringEntity("" +
+                        "{" +
+                        "   \"id\": \"" + customer.getId() + "\"," +
+                        "   \"organizationName\": \"" + customer.getOrganizationName() + "\"," +
+                        "   \"address\": \"" + customer.getAddress() + "\"," +
+                        "   \"phone1\": \"" + customer.getPhone1() + "\"," +
+                        "   \"phone2\": \"" + customer.getPhone2() + "\"," +
+                        "   \"balance\": " + customer.getBalance() +
+                        "}");
+                break;
+            case 1:
+                Product product = (Product) object;
+                input = new StringEntity("" +
+                        "{" +
+                        "   \"id\": \"" + product.getId() + "\"," +
+                        "   \"description\": \"" + product.getDescription() + "\"," +
+                        "   \"price\": " + product.getPrice() + "," +
+                        "   \"inventoryBalance\": " + product.getInventoryBalance() +
+                        "}");
+                break;
+            case 3:
+                SalesOrder salesOrder = (SalesOrder) object;
+                List<OrderLine> orderLines = salesOrder.getOrderLines();
+                String orderLinesValue = "[";
+                Iterator<OrderLine> iterator = orderLines.iterator();
+                while (iterator.hasNext()) {
+                    OrderLine orderLine = iterator.next();
+                    orderLinesValue += convertOrderLine(orderLine) + (iterator.hasNext() ? "," : "");
+                }
+                orderLinesValue += "]";
+
+                input = new StringEntity("" +
+                        "{" +
+                        "   \"id\": \"" + salesOrder.getId() + "\"," +
+                        "   \"customerId\": \"" + salesOrder.getCustomerId() + "\"," +
+                        "   \"orderLines\": \"" + orderLinesValue + "\"" +
+                        "}");
+                break;
+            default:
+                throw new RuntimeException("wrong object type");
+        }
+        input.setContentType(APPLICATION_JSON_HEADER_VALUE);
+        return input;
+    }
+
+    private static String convertOrderLine(OrderLine orderLine) {
+        String str = "{" + "\"id\":" + orderLine.getId() + "," +
+                "\"productIdToQuantity\":{";
+        Set<Map.Entry<String, Integer>> entries = orderLine.getProductIdToQuantity().entrySet();
+        Iterator<Map.Entry<String, Integer>> iterator = entries.iterator();
+        for (; iterator.hasNext(); ) {
+            Map.Entry<String, Integer> entry = iterator.next();
+            str += "\"" + entry.getKey() + "\":" + entry.getValue() + (iterator.hasNext() ? "," : "");
+
+        }
+        str += "}}";
+        return str;
+    }
+
+    private static String getResourceName(int objectType) {
+        return objectType == 1 ? "products" : objectType == 2 ? "customers" : "salesOrders";
+    }
+
+    private static Class<?> getResourceClass(int objectType) {
+        return objectType == 1 ? Product.class : objectType == 2 ? Customer.class : SalesOrder.class;
     }
 }

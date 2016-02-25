@@ -154,7 +154,7 @@ public class AppTest {
         Product savedProduct = productRepository.saveAndFlush(preparedProduct);
 
         preparedCustomer = new Customer();
-        preparedCustomer.setCode("1C");
+        preparedCustomer.setId("1C");
         preparedCustomer.setOrganizationName("Organization Name");
         preparedCustomer.setAddress("Address");
         preparedCustomer.setPhone1("123");

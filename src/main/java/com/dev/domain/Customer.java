@@ -40,7 +40,7 @@ public class Customer implements Serializable {
         return id;
     }
 
-    public void setCode(String id) {
+    public void setId(String id) {
         this.id = id;
     }
 

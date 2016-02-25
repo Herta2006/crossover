@@ -22,7 +22,7 @@ public class Product implements Serializable {
 
     @JsonProperty("price")
     @Column(name = "PRICE_IN_EURO_CENTS")
-    private Long price;
+    private long price;
 
     @JsonProperty("inventoryBalance")
     @Column(name = "INVENTORY_BALANCE")
@@ -64,7 +64,7 @@ public class Product implements Serializable {
         return price;
     }
 
-    public void setPrice(Long price) {
+    public void setPrice(long price) {
         this.price = price;
     }
 

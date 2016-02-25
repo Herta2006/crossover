@@ -33,7 +33,7 @@ public class SalesResourcesServiceImpl<T> implements SalesResourcesService<T> {
     @Override
     public T findOne(Class<T> clazz, String code) {
         if (clazz.getName().equals(Customer.class.getName())) return (T) customerRepository.findOne(code);
-        else if (clazz.getName().equals(Customer.class.getName())) return (T) productRepository.findOne(code);
+        else if (clazz.getName().equals(Product.class.getName())) return (T) productRepository.findOne(code);
         else return (T) salesOrderRepository.findOne(Long.valueOf(code));
     }
 

@@ -67,8 +67,7 @@ public class ListContentPanel extends JPanel implements HasBusinessPresenter {
 
 					public void valueChanged(ListSelectionEvent e) {
 						if (!e.getValueIsAdjusting())
-							goToRecord(table.getValueAt(table.getSelectedRow(),
-									0).toString());
+							goToRecord(table.getValueAt(table.getSelectedRow(), 0).toString());
 					}
 				});
 		JScrollPane scrollPane = new JScrollPane(table);
@@ -80,10 +79,8 @@ public class ListContentPanel extends JPanel implements HasBusinessPresenter {
 
 	private void goToRecord(String code) {
 		String editViewName = getEditViewName(dataModel.getObjectType());
-		HasBusinessPresenter panelOfClass = panelSwitcher
-				.getPanelOfClass(editViewName);
-		Object retValue = Services.readRecordByCode(code,
-				dataModel.getObjectType());
+		HasBusinessPresenter panelOfClass = panelSwitcher.getPanelOfClass(editViewName);
+		Object retValue = Services.readRecordByCode(code, dataModel.getObjectType());
 		panelSwitcher.switchTo(editViewName);
 		panelOfClass.getBusinessPresenter().bindToGUI(retValue);
 	}
