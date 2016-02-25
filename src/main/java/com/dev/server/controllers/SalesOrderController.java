@@ -44,7 +44,7 @@ public class SalesOrderController {
     }
 
     @RequestMapping(value = "/{id}", method = GET)
-    public ResponseEntity<SalesOrder> getSalesOrder(@PathVariable("code") String code) {
+    public ResponseEntity<SalesOrder> getSalesOrder(@PathVariable("id") String code) {
         SalesOrder salesOrder = (SalesOrder) salesResourcesService.findOne(SalesOrder.class, code);
         if (salesOrder == null) return new ResponseEntity<>(NOT_FOUND);
         return new ResponseEntity<>(salesOrder, OK);
@@ -54,7 +54,7 @@ public class SalesOrderController {
     public ResponseEntity<SalesOrder> updateSalesOrder(@PathVariable("id") String id, @RequestBody SalesOrder salesOrder) {
         SalesOrder currentSalesOrder = (SalesOrder) salesResourcesService.findOne(SalesOrder.class, id);
         if (currentSalesOrder == null) return new ResponseEntity<>(NOT_FOUND);
-        currentSalesOrder.setCustomer(salesOrder.getCustomer());
+        currentSalesOrder.setCustomerId(salesOrder.getCustomerId());
         currentSalesOrder.setOrderLines(salesOrder.getOrderLines());
         SalesOrder savedSalesOrder = (SalesOrder) salesResourcesService.save(currentSalesOrder);
         return new ResponseEntity<>(savedSalesOrder, OK);

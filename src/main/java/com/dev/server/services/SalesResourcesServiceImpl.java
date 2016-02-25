@@ -41,7 +41,7 @@ public class SalesResourcesServiceImpl<T> implements SalesResourcesService<T> {
     public T save(T entity) {
         if (entity.getClass().getName().equals(Customer.class.getName()))
             return (T) customerRepository.saveAndFlush((Customer) entity);
-        if (entity.getClass().getName().equals(Customer.class.getName()))
+        else if (entity.getClass().getName().equals(Product.class.getName()))
             return (T) productRepository.saveAndFlush((Product) entity);
         else return (T) salesOrderRepository.saveAndFlush((SalesOrder) entity);
     }

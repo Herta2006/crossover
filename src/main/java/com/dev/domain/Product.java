@@ -1,5 +1,7 @@
 package com.dev.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -9,16 +11,20 @@ import java.io.Serializable;
 @Entity
 @Table(name = "PRODUCTS")
 public class Product implements Serializable {
+    @JsonProperty("id")
     @Id
     @Column(name = "ID", unique = true)
     private String id;
 
+    @JsonProperty("description")
     @Column(name = "DESCRIPTION")
     private String description;
 
+    @JsonProperty("price")
     @Column(name = "PRICE_IN_EURO_CENTS")
     private Long price;
 
+    @JsonProperty("inventoryBalance")
     @Column(name = "INVENTORY_BALANCE")
     private int inventoryBalance;
 
@@ -85,13 +91,13 @@ public class Product implements Serializable {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
-
-    @Override
-    public String toString() {
-        return /*"id:" + */id;/* +
-                ",description:" + description +
-                ",price:" + price +
-                ",inventoryBalance:" + inventoryBalance;*/
-    }
+//
+//    @Override
+//    public String toString() {
+//        return /*"id:" + */id;/* +
+//                ",description:" + description +
+//                ",price:" + price +
+//                ",inventoryBalance:" + inventoryBalance;*/
+//    }
 }
 

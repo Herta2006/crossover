@@ -17,13 +17,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestContextConfig.class)
@@ -42,7 +42,7 @@ public class AppTest {
     private CustomerRepository customerRepository;
     private Customer preparedCustomer;
     private Product preparedProduct;
-//    private SalesOrder preparedSalesOrder;
+    private SalesOrder preparedSalesOrder;
 
     @Test
     public void findCustomer() {
@@ -106,6 +106,44 @@ public class AppTest {
         assertTrue(customers.isEmpty());
     }
 
+    @Test
+    public void findSalesOrder() {
+        SalesOrder actual = salesOrderRepository.findOne(preparedSalesOrder.getId());
+        assertEquals(preparedSalesOrder.getCustomerId(), actual.getCustomerId());
+        assertArrayEquals(preparedSalesOrder.getOrderLines().toArray(new OrderLine[preparedSalesOrder.getOrderLines().size()]),
+                actual.getOrderLines().toArray(new OrderLine[actual.getOrderLines().size()]));
+    }
+
+    @Test
+    public void updateSalesOrder() {
+        SalesOrder salesOrder = salesOrderRepository.findOne(preparedSalesOrder.getId());
+        salesOrder.getOrderLines().iterator().next().getProductIdToQuantity().put(preparedProduct.getId(), 2);
+        salesOrderRepository.saveAndFlush(salesOrder);
+        SalesOrder actual = salesOrderRepository.findOne(preparedSalesOrder.getId());
+        assertEquals(salesOrder.getCustomerId(), actual.getCustomerId());
+        assertArrayEquals(salesOrder.getOrderLines().toArray(new OrderLine[salesOrder.getOrderLines().size()]),
+                actual.getOrderLines().toArray(new OrderLine[actual.getOrderLines().size()]));
+    }
+
+    @Test
+    public void deleteSalesOrder() {
+        salesOrderRepository.delete(preparedSalesOrder.getId());
+        List<SalesOrder> salesOrders = salesOrderRepository.findAll();
+        assertTrue(salesOrders.isEmpty());
+
+        Customer actualCustomer = customerRepository.findOne(preparedCustomer.getId());
+        assertEquals(preparedCustomer.getOrganizationName(), actualCustomer.getOrganizationName());
+        assertEquals(preparedCustomer.getAddress(), actualCustomer.getAddress());
+        assertEquals(preparedCustomer.getPhone1(), actualCustomer.getPhone1());
+        assertEquals(preparedCustomer.getPhone2(), actualCustomer.getPhone2());
+        assertEquals(preparedCustomer.getBalance(), actualCustomer.getBalance());
+
+        Product actualProduct = productRepository.findOne(preparedProduct.getId());
+        assertEquals(preparedProduct.getDescription(), actualProduct.getDescription());
+        assertTrue(preparedProduct.getPrice() == actualProduct.getPrice());
+        assertTrue(preparedProduct.getInventoryBalance() == actualProduct.getInventoryBalance());
+    }
+
     @Before
     public void prepareDatabase() {
         preparedProduct = new Product();
@@ -124,15 +162,14 @@ public class AppTest {
         preparedCustomer.setBalance(1000_00L); //1000 euro
         Customer savedCustomer = customerRepository.saveAndFlush(preparedCustomer);
 
-//        OrderLine orderLine = new OrderLine();
-//        Map<Product, Integer> productsQuantity = new HashMap<>();
-//        productsQuantity.put(preparedProduct, 1);
-//        orderLine.setProductQuantity(productsQuantity);
-//        orderLinesRepository.save(orderLine);
-//        preparedSalesOrder = new SalesOrder();
-//        preparedSalesOrder.setCustomer(preparedCustomer);
-//        preparedSalesOrder.setOrderLines(singletonList(orderLine));
-//        SalesOrder savedSalesOrder = salesOrderRepository.save(preparedSalesOrder);
+        OrderLine orderLine = new OrderLine();
+        Map<String, Integer> productsQuantity = new HashMap<>();
+        productsQuantity.put(preparedProduct.getId(), 1);
+        orderLine.setProductIdToQuantity(productsQuantity);
+        preparedSalesOrder = new SalesOrder();
+        preparedSalesOrder.setCustomerId(preparedCustomer.getId());
+        preparedSalesOrder.setOrderLines(new ArrayList<>(singletonList(orderLine)));
+        SalesOrder savedSalesOrder = salesOrderRepository.save(preparedSalesOrder);
     }
 
     @After

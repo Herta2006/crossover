@@ -1,11 +1,16 @@
 package com.dev.domain;
 
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
+import static javax.persistence.CascadeType.*;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.IDENTITY;
+import static org.hibernate.annotations.LazyCollectionOption.FALSE;
 
 @Entity
 @Table(name = "SALES_ORDERS")
@@ -15,15 +20,16 @@ public class SalesOrder implements Serializable {
     @Column(name = "ID", unique = true)
     private long id;
 
-    @OneToOne
-    @JoinTable(
-            name = "SALES_ORDERS_CUSTOMERS",
-            joinColumns = @JoinColumn(name = "SALES_ORDER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_CUSTOMERS_SO_ID")),
-            inverseJoinColumns = @JoinColumn(name = "CUSTOMER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_CUSTOMERS_C_ID"))
-    )
-    private Customer customer;
+    @Column
+//    @JoinTable(
+//            name = "SALES_ORDERS_CUSTOMERS",
+//            joinColumns = @JoinColumn(name = "SALES_ORDER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_CUSTOMERS_SO_ID")),
+//            inverseJoinColumns = @JoinColumn(name = "CUSTOMER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_CUSTOMERS_C_ID"))
+//    )
+    private String customerId;
 
-    @OneToMany(fetch = EAGER)
+    @OneToMany(fetch = EAGER, cascade = {ALL})
+    @LazyCollection(FALSE)
     @JoinTable(
             name = "SALES_ORDERS_LINES",
             joinColumns = @JoinColumn(name = "SALES_ORDER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_LINES_SO_ID")),
@@ -39,12 +45,12 @@ public class SalesOrder implements Serializable {
         this.id = id;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
     }
 
     public List<OrderLine> getOrderLines() {
