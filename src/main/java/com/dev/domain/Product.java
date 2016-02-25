@@ -1,6 +1,9 @@
 package com.dev.domain;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 @Entity
@@ -81,6 +84,14 @@ public class Product implements Serializable {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return /*"id:" + */id;/* +
+                ",description:" + description +
+                ",price:" + price +
+                ",inventoryBalance:" + inventoryBalance;*/
     }
 }
 
