@@ -169,13 +169,10 @@ public class Services {
         return null;
     }
 
-    //todo: change OrderLine pojo, database for this pojo and handling related results
     public static double calculateTotalPrice(SalesOrder salesOrder) {
         double result = 0;
         for (OrderLine orderLine : salesOrder.getOrderLines()) {
-            for (Map.Entry<String, Integer> entry : orderLine.getProductIdToQuantity().entrySet()) {
-                result += getProductPrice(entry.getKey());
-            }
+            result += orderLine.getQuantity() * getProductPrice(orderLine.getProductId());
         }
         return result;
     }
@@ -253,17 +250,11 @@ public class Services {
     }
 
     private static String convertOrderLine(OrderLine orderLine) {
-        String str = "{" + "\"id\":" + orderLine.getId() + "," +
-                "\"productIdToQuantity\":{";
-        Set<Map.Entry<String, Integer>> entries = orderLine.getProductIdToQuantity().entrySet();
-        Iterator<Map.Entry<String, Integer>> iterator = entries.iterator();
-        for (; iterator.hasNext(); ) {
-            Map.Entry<String, Integer> entry = iterator.next();
-            str += "\"" + entry.getKey() + "\":" + entry.getValue() + (iterator.hasNext() ? "," : "");
-
-        }
-        str += "}}";
-        return str;
+        return "{" +
+                "\"id\":" + orderLine.getId() + "," +
+                "\"productId\":\"" + orderLine.getProductId() + "\"," +
+                "\"quantity\":" + orderLine.getQuantity() +
+                "}";
     }
 
     private static String getResourceName(int objectType) {

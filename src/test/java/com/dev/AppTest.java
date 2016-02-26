@@ -5,7 +5,6 @@ import com.dev.domain.OrderLine;
 import com.dev.domain.Product;
 import com.dev.domain.SalesOrder;
 import com.dev.server.repositories.CustomerRepository;
-import com.dev.server.repositories.OrderLinesRepository;
 import com.dev.server.repositories.ProductRepository;
 import com.dev.server.repositories.SalesOrderRepository;
 import org.junit.After;
@@ -18,9 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
@@ -33,13 +30,11 @@ public class AppTest {
     private ProductRepository productRepository;
 
     @Autowired
-    private OrderLinesRepository orderLinesRepository;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private SalesOrderRepository salesOrderRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
     private Customer preparedCustomer;
     private Product preparedProduct;
     private SalesOrder preparedSalesOrder;
@@ -117,7 +112,9 @@ public class AppTest {
     @Test
     public void updateSalesOrder() {
         SalesOrder salesOrder = salesOrderRepository.findOne(preparedSalesOrder.getId());
-        salesOrder.getOrderLines().iterator().next().getProductIdToQuantity().put(preparedProduct.getId(), 2);
+        OrderLine orderLine = salesOrder.getOrderLines().iterator().next();
+        orderLine.setProductId(preparedProduct.getId());
+        orderLine.setQuantity(2);
         salesOrderRepository.saveAndFlush(salesOrder);
         SalesOrder actual = salesOrderRepository.findOne(preparedSalesOrder.getId());
         assertEquals(salesOrder.getCustomerId(), actual.getCustomerId());
@@ -163,9 +160,8 @@ public class AppTest {
         Customer savedCustomer = customerRepository.saveAndFlush(preparedCustomer);
 
         OrderLine orderLine = new OrderLine();
-        Map<String, Integer> productsQuantity = new HashMap<>();
-        productsQuantity.put(preparedProduct.getId(), 1);
-        orderLine.setProductIdToQuantity(productsQuantity);
+        orderLine.setProductId(preparedProduct.getId());
+        orderLine.setQuantity(1);
         preparedSalesOrder = new SalesOrder();
         preparedSalesOrder.setCustomerId(preparedCustomer.getId());
         preparedSalesOrder.setOrderLines(new ArrayList<>(singletonList(orderLine)));
@@ -175,7 +171,6 @@ public class AppTest {
     @After
     public void clearDatabase() {
         salesOrderRepository.deleteAll();
-        orderLinesRepository.deleteAll();
         productRepository.deleteAll();
     }
 }

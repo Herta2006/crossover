@@ -1,6 +1,8 @@
 package com.dev.server.controllers;
 
 import com.dev.domain.SalesOrder;
+import com.dev.server.NotEnoughBalanceException;
+import com.dev.server.NotEnoughQuantityProductException;
 import com.dev.server.services.SalesResourcesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -37,7 +39,13 @@ public class SalesOrderController {
     public ResponseEntity<Void> createSalesOrder(@RequestBody SalesOrder salesOrder, UriComponentsBuilder ucBuilder) {
         if (salesResourcesService.findOne(SalesOrder.class, "" + salesOrder.getId()) != null)
             return new ResponseEntity<>(CONFLICT);
-        salesResourcesService.save(salesOrder);
+        try {
+            salesResourcesService.saveOrderLine(salesOrder);
+        } catch (NotEnoughQuantityProductException e) {
+            return new ResponseEntity<>(PAYMENT_REQUIRED);
+        } catch (NotEnoughBalanceException e) {
+            return new ResponseEntity<>(NO_CONTENT);
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(ucBuilder.path("/salesOrders/{code}").buildAndExpand(salesOrder.getId()).toUri());
         return new ResponseEntity<>(headers, CREATED);
@@ -56,7 +64,14 @@ public class SalesOrderController {
         if (currentSalesOrder == null) return new ResponseEntity<>(NOT_FOUND);
         currentSalesOrder.setCustomerId(salesOrder.getCustomerId());
         currentSalesOrder.setOrderLines(salesOrder.getOrderLines());
-        SalesOrder savedSalesOrder = (SalesOrder) salesResourcesService.save(currentSalesOrder);
+        SalesOrder savedSalesOrder;
+        try {
+            savedSalesOrder = salesResourcesService.saveOrderLine(salesOrder);
+        } catch (NotEnoughQuantityProductException e) {
+            return new ResponseEntity<>(PAYMENT_REQUIRED);
+        } catch (NotEnoughBalanceException e) {
+            return new ResponseEntity<>(NO_CONTENT);
+        }
         return new ResponseEntity<>(savedSalesOrder, ACCEPTED);
     }
 

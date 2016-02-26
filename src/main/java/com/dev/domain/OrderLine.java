@@ -16,13 +16,10 @@ public class OrderLine implements Serializable {
     @Column(name = "ID", unique = true)
     private long id;
 
-    @ElementCollection(fetch = EAGER)
-    @CollectionTable(name = "PRODUCT_QUANTITY",
-            joinColumns = @JoinColumn(name = "ORDER_LINE_ID", foreignKey = @ForeignKey(name = "FK_PRODUCT_QUANTITY_OL_ID")))
-//    @MapKeyJoinColumn(name = "PRODUCT_ID", table = "PRODUCTS",  foreignKey = @ForeignKey(name = "FK_PRODUCT_QUANTITY_P_ID"))
-    @MapKeyColumn(name = "PRODUCT_ID")
+    @Column(name = "PRODUCT_ID")
+    private String productId;
     @Column(name = "QUANTITY")
-    private Map<String, Integer> productIdToQuantity;
+    private Integer quantity;
 
     public long getId() {
         return id;
@@ -32,12 +29,20 @@ public class OrderLine implements Serializable {
         this.id = id;
     }
 
-    public Map<String, Integer> getProductIdToQuantity() {
-        return productIdToQuantity;
+    public String getProductId() {
+        return productId;
     }
 
-    public void setProductIdToQuantity(Map<String, Integer> productIdToQuantity) {
-        this.productIdToQuantity = productIdToQuantity;
+    public void setProductId(String productId) {
+        this.productId = productId;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     @Override
@@ -47,15 +52,12 @@ public class OrderLine implements Serializable {
 
         OrderLine orderLine = (OrderLine) o;
 
-        if (id != orderLine.id) return false;
-        return productIdToQuantity != null ? productIdToQuantity.equals(orderLine.productIdToQuantity) : orderLine.productIdToQuantity == null;
+        return productId != null ? productId.equals(orderLine.productId) : orderLine.productId == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + (productIdToQuantity != null ? productIdToQuantity.hashCode() : 0);
-        return result;
+        return productId != null ? productId.hashCode() : 0;
     }
 }

@@ -11,8 +11,11 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+import java.util.stream.Collectors;
 
 public class EditSalesOrder extends EditContentPanel {
     private static final long serialVersionUID = -8971249970444644844L;
@@ -200,12 +203,10 @@ public class EditSalesOrder extends EditContentPanel {
         txtTotalPrice.setText("");
         txtOrderNum.setText("" + salesOrder.getId());
         for (OrderLine orderLine : salesOrder.getOrderLines()) {
-            for (Map.Entry<String, Integer> entry : orderLine.getProductIdToQuantity().entrySet()) {
-                txtCustomer.setSelectedItem(Services.getCustomerById(salesOrder.getCustomerId()));
-                txtProduct.setSelectedItem(Services.getProductById(entry.getKey()));
-                txtQuantity.setText("" + entry.getValue());
-                addRow();
-            }
+            txtCustomer.setSelectedItem(Services.getCustomerById(salesOrder.getCustomerId()));
+            txtProduct.setSelectedItem(Services.getProductById(orderLine.getProductId()));
+            txtQuantity.setText("" + orderLine.getQuantity());
+            addRow();
         }
         txtQuantity.setText("");
         return false;
@@ -217,22 +218,26 @@ public class EditSalesOrder extends EditContentPanel {
         ComboBoxItem selectedItem = (ComboBoxItem) txtCustomer.getSelectedItem();
         salesOrder.setCustomerId(selectedItem.getKey());
 
-        List<OrderLine> orderLines = new ArrayList<>();
-        OrderLine orderLine = new OrderLine();
-        Map<String, Integer> productIdToQuantity = new HashMap<>();
+        Map<String, Integer> productToQuantity = new HashMap<>();
+
         for (Object vector : defaultTableModel.getDataVector()) {
             Vector row = (Vector) vector;
             String code = (String) (row.get(0));
             Integer quantity = Integer.valueOf((String) row.get(1));
-            if (productIdToQuantity.containsKey(code)) {
-                productIdToQuantity.put(code, productIdToQuantity.get(code) + quantity);
+            OrderLine orderLine = new OrderLine();
+            orderLine.setProductId(code);
+            if (productToQuantity.containsKey(code)) {
+                productToQuantity.put(code, productToQuantity.get(code) + quantity);
             } else {
-                productIdToQuantity.put(code, quantity);
+                productToQuantity.put(code, quantity);
             }
         }
-        orderLine.setProductIdToQuantity(productIdToQuantity);
-        orderLines.add(orderLine);
-        salesOrder.setOrderLines(orderLines);
+        salesOrder.setOrderLines(productToQuantity.entrySet().stream().map(e -> {
+            OrderLine orderLine = new OrderLine();
+            orderLine.setProductId(e.getKey());
+            orderLine.setQuantity(e.getValue());
+            return orderLine;
+        }).collect(Collectors.toList()));
         return salesOrder;
     }
 

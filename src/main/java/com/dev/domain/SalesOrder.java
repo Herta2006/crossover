@@ -21,11 +21,6 @@ public class SalesOrder implements Serializable {
     private long id;
 
     @Column
-//    @JoinTable(
-//            name = "SALES_ORDERS_CUSTOMERS",
-//            joinColumns = @JoinColumn(name = "SALES_ORDER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_CUSTOMERS_SO_ID")),
-//            inverseJoinColumns = @JoinColumn(name = "CUSTOMER_ID", foreignKey = @ForeignKey(name = "FK_SALES_ORDERS_CUSTOMERS_C_ID"))
-//    )
     private String customerId;
 
     @OneToMany(fetch = EAGER, cascade = {ALL})

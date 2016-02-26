@@ -91,13 +91,15 @@ public class Product implements Serializable {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
-//
-//    @Override
-//    public String toString() {
-//        return /*"id:" + */id;/* +
-//                ",description:" + description +
-//                ",price:" + price +
-//                ",inventoryBalance:" + inventoryBalance;*/
-//    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id='" + id + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", inventoryBalance=" + inventoryBalance +
+                '}';
+    }
 }
 
