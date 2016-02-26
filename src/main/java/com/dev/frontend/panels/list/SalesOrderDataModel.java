@@ -3,7 +3,9 @@ package com.dev.frontend.panels.list;
 import com.dev.domain.SalesOrder;
 import com.dev.frontend.services.Services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class SalesOrderDataModel extends ListDataModel {
@@ -13,6 +15,8 @@ public class SalesOrderDataModel extends ListDataModel {
         super(new String[]{"Order Number", "Customer", "Total Price"}, 0);
     }
 
+    private final static Map<String, String[]> tableData = new HashMap<>();
+
     @Override
     public int getObjectType() {
         return Services.TYPE_SALES_ORDER;
@@ -20,18 +24,22 @@ public class SalesOrderDataModel extends ListDataModel {
 
     @Override
     public String[][] convertRecordsListToTableModel(List<Object> list) {
-        String[][] data = new String[list.size()][];
-        for (int i = 0; i < list.size(); i++) {
-            data[i] = covertFromSalesOrder((SalesOrder) list.get(i));
-        }
-        return data;
+        tableData.clear();
+        list.stream().forEach(object -> {
+            SalesOrder salesOrder = (SalesOrder) object;
+            if (tableData.containsKey(salesOrder.getCustomerId())) {
+                String[] row = tableData.get(salesOrder.getCustomerId());
+                row[2] = "" + (Double.parseDouble(row[2]) + Services.calculateTotalPrice(salesOrder));
+            } else {
+                String[] row = new String[3];
+                row[0] = "" + salesOrder.getId();
+                row[1] = "(" + salesOrder.getCustomerId() + ")" + Services.getCustomerById(salesOrder.getCustomerId());
+                row[2] = "" + Services.calculateTotalPrice(salesOrder);
+                tableData.put(salesOrder.getCustomerId(), row);
+            }
+        });
+        return tableData.values().toArray(new String[tableData.values().size()][]);
     }
 
-    private String[] covertFromSalesOrder(SalesOrder salesOrder) {
-        String[] strings = new String[3];
-        strings[0] = "" + salesOrder.getId();
-        strings[1] = "(" + salesOrder.getCustomerId() + ")" + "Customer's Organization Name";
-        strings[2] = "122.5";
-        return strings;
-    }
+
 }

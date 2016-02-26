@@ -16,6 +16,11 @@ import com.dev.frontend.panels.list.CustomerDataModel;
 import com.dev.frontend.panels.list.ListContentPanel;
 import com.dev.frontend.panels.list.ProductDataModel;
 import com.dev.frontend.panels.list.SalesOrderDataModel;
+import com.dev.frontend.services.Services;
+
+import static com.dev.frontend.services.Services.TYPE_CUSTOMER;
+import static com.dev.frontend.services.Services.TYPE_PRODUCT;
+import static com.dev.frontend.services.Services.TYPE_SALES_ORDER;
 
 public class Main implements PanelSwitcher {
 	private JFrame frame;
@@ -65,6 +70,9 @@ public class Main implements PanelSwitcher {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		panel = new JPanel(new CardLayout());
 		frame.add(panel);
+		Services.listCurrentRecords(TYPE_PRODUCT);
+		Services.listCurrentRecords(TYPE_CUSTOMER);
+		Services.listCurrentRecords(TYPE_SALES_ORDER);
 	}
 
 	public void switchTo(String name) {

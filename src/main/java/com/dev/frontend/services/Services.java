@@ -7,6 +7,7 @@ import com.dev.domain.SalesOrder;
 import com.dev.frontend.panels.ComboBoxItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
@@ -27,6 +28,7 @@ public class Services {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     public static final String APPLICATION_JSON_HEADER_VALUE = "application/json";
     public static final String CONTENT_TYPE_HEADER_NAME = "Content-Type";
+    private static Map<Integer, List<Object>> retrievedData = new HashMap<>();
 
     public static List<Object> listCurrentRecords(int objectType) {
         List<Object> resources = new ArrayList<>();
@@ -35,19 +37,23 @@ public class Services {
             HttpGet getRequest = new HttpGet(URL + getResourceName(objectType));
             getRequest.addHeader(CONTENT_TYPE_HEADER_NAME, APPLICATION_JSON_HEADER_VALUE);
             HttpResponse response = httpClient.execute(getRequest);
-            if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() != 200 && response.getStatusLine().getStatusCode() != 204) {
                 throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
             }
 
-            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-
             String jsonString = "";
-            String line;
-            while ((line = br.readLine()) != null) {
-                jsonString += line;
+            if (response.getStatusLine().getStatusCode() != 204) {
+                HttpEntity entity = response.getEntity();
+                BufferedReader br = new BufferedReader(new InputStreamReader((entity.getContent())));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    jsonString += line;
+                }
+                TypeFactory typeFactory = TypeFactory.defaultInstance();
+                resources = MAPPER.readValue(jsonString, typeFactory.constructCollectionType(List.class, getResourceClass(objectType)));
             }
-            TypeFactory typeFactory = TypeFactory.defaultInstance();
-            resources = MAPPER.readValue(jsonString, typeFactory.constructCollectionType(List.class, getResourceClass(objectType)));
+
+            retrievedData.put(objectType, resources);
             httpClient.getConnectionManager().shutdown();
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,22 +76,8 @@ public class Services {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        listCurrentRecords(objectType);
         return object;
-    }
-
-    private static String getId(Object object) {
-        if (object.getClass() == Product.class) return ((Product) object).getId();
-        if (object.getClass() == Customer.class) return ((Customer) object).getId();
-        if (object.getClass() == SalesOrder.class) return "" + ((SalesOrder) object).getId();
-        return "";
-    }
-
-    private static HttpEntityEnclosingRequestBase getHttpMethod(int objectType, Object object) {
-        if (readRecordByCode(getId(object), objectType) == null) {
-            return new HttpPost(URL + getResourceName(objectType));
-        } else {
-            return new HttpPut(URL + getResourceName(objectType) + "/" + getId(object));
-        }
     }
 
     public static Object readRecordByCode(String code, int objectType) {
@@ -127,19 +119,86 @@ public class Services {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        listCurrentRecords(objectType);
         return true;
     }
 
     public static List<ComboBoxItem> listCurrentRecordReferences(int objectType) {
-        return listCurrentRecords(objectType)
+        listCurrentRecords(objectType);
+        return retrievedData.get(objectType)
                 .stream()
-                .map(obj -> new ComboBoxItem("Key", "Value"))
+                .map(obj -> new ComboBoxItem(getId(obj), getValue(obj)))
                 .collect(Collectors.toList());
     }
 
     public static double getProductPrice(String productCode) {
-        Product product = (Product) readRecordByCode(productCode, TYPE_PRODUCT);
-        return product.getPrice();
+        for (Object productObj : retrievedData.get(TYPE_PRODUCT)) {
+            Product product = (Product) productObj;
+            if (product.getId().equals(productCode)) {
+                return product.getPrice() / 100.;
+            }
+        }
+        return 0;
+    }
+
+    public static Map<Integer, List<Object>> getRetrievedData() {
+        if (!retrievedData.containsKey(TYPE_CUSTOMER) || !retrievedData.containsKey(TYPE_PRODUCT)) {
+            listCurrentRecords(TYPE_CUSTOMER);
+            listCurrentRecords(TYPE_PRODUCT);
+        }
+        return retrievedData;
+    }
+
+    public static Object getCustomerById(String customerId) {
+        for (Object customerObj : retrievedData.get(TYPE_CUSTOMER)) {
+            Customer customer = (Customer) customerObj;
+            if (customer.getId().equals(customerId)) {
+                return customer;
+            }
+        }
+        return null;
+    }
+
+    public static Object getProductById(String productId) {
+        for (Object productObj : retrievedData.get(TYPE_PRODUCT)) {
+            Product product = (Product) productObj;
+            if (product.getId().equals(productId)) {
+                return product;
+            }
+        }
+        return null;
+    }
+
+    //todo: change OrderLine pojo, database for this pojo and handling related results
+    public static double calculateTotalPrice(SalesOrder salesOrder) {
+        double result = 0;
+        for (OrderLine orderLine : salesOrder.getOrderLines()) {
+            for (Map.Entry<String, Integer> entry : orderLine.getProductIdToQuantity().entrySet()) {
+                result += getProductPrice(entry.getKey());
+            }
+        }
+        return result;
+    }
+
+    private static HttpEntityEnclosingRequestBase getHttpMethod(int objectType, Object object) {
+        if (readRecordByCode(getId(object), objectType) == null) {
+            return new HttpPost(URL + getResourceName(objectType));
+        } else {
+            return new HttpPut(URL + getResourceName(objectType) + "/" + getId(object));
+        }
+    }
+
+    private static String getValue(Object object) {
+        if (object.getClass() == Product.class) return ((Product) object).getDescription();
+        if (object.getClass() == Customer.class) return ((Customer) object).getOrganizationName();
+        return "";
+    }
+
+    private static String getId(Object object) {
+        if (object.getClass() == Product.class) return ((Product) object).getId();
+        if (object.getClass() == Customer.class) return ((Customer) object).getId();
+        if (object.getClass() == SalesOrder.class) return "" + ((SalesOrder) object).getId();
+        return "";
     }
 
     private static StringEntity createStringEntity(int objectType, Object object) throws UnsupportedEncodingException {
@@ -178,12 +237,13 @@ public class Services {
                 }
                 orderLinesValue += "]";
 
-                input = new StringEntity("" +
+                String json = "" +
                         "{" +
-                        "   \"id\": \"" + salesOrder.getId() + "\"," +
+                        "   \"id\": " + salesOrder.getId() + "," +
                         "   \"customerId\": \"" + salesOrder.getCustomerId() + "\"," +
-                        "   \"orderLines\": \"" + orderLinesValue + "\"" +
-                        "}");
+                        "   \"orderLines\": " + orderLinesValue + "" +
+                        "}";
+                input = new StringEntity(json);
                 break;
             default:
                 throw new RuntimeException("wrong object type");

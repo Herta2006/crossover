@@ -1,6 +1,5 @@
 package com.dev.frontend.panels.edit;
 
-import com.dev.domain.Customer;
 import com.dev.domain.OrderLine;
 import com.dev.domain.SalesOrder;
 import com.dev.frontend.panels.ComboBoxItem;
@@ -12,7 +11,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 public class EditSalesOrder extends EditContentPanel {
@@ -194,27 +193,45 @@ public class EditSalesOrder extends EditContentPanel {
     }
 
     public boolean bindToGUI(Object o) {
-        // TODO by the candidate
-        /*
-		 * This method use the object returned by Services.readRecordByCode and should map it to screen widgets 
-		 */
+        SalesOrder salesOrder = (SalesOrder) o;
+        while (defaultTableModel.getRowCount() > 0) {
+            defaultTableModel.removeRow(0);
+        }
+        txtTotalPrice.setText("");
+        txtOrderNum.setText("" + salesOrder.getId());
+        for (OrderLine orderLine : salesOrder.getOrderLines()) {
+            for (Map.Entry<String, Integer> entry : orderLine.getProductIdToQuantity().entrySet()) {
+                txtCustomer.setSelectedItem(Services.getCustomerById(salesOrder.getCustomerId()));
+                txtProduct.setSelectedItem(Services.getProductById(entry.getKey()));
+                txtQuantity.setText("" + entry.getValue());
+                addRow();
+            }
+        }
+        txtQuantity.setText("");
         return false;
     }
 
     public Object guiToObject() {
         SalesOrder salesOrder = new SalesOrder();
         salesOrder.setId(Long.parseLong(txtOrderNum.getText()));
-        Customer selectedItem = (Customer) txtCustomer.getSelectedItem();
-        salesOrder.setCustomerId(selectedItem.getId());
+        ComboBoxItem selectedItem = (ComboBoxItem) txtCustomer.getSelectedItem();
+        salesOrder.setCustomerId(selectedItem.getKey());
 
-        List<Object> uiTableMock = new ArrayList<>();
         List<OrderLine> orderLines = new ArrayList<>();
-        for (Object uiObject : uiTableMock) {
-            // convertUiObjectToOrderLine
-            OrderLine orderLine = new OrderLine();
-            orderLines.add(orderLine);
+        OrderLine orderLine = new OrderLine();
+        Map<String, Integer> productIdToQuantity = new HashMap<>();
+        for (Object vector : defaultTableModel.getDataVector()) {
+            Vector row = (Vector) vector;
+            String code = (String) (row.get(0));
+            Integer quantity = Integer.valueOf((String) row.get(1));
+            if (productIdToQuantity.containsKey(code)) {
+                productIdToQuantity.put(code, productIdToQuantity.get(code) + quantity);
+            } else {
+                productIdToQuantity.put(code, quantity);
+            }
         }
-
+        orderLine.setProductIdToQuantity(productIdToQuantity);
+        orderLines.add(orderLine);
         salesOrder.setOrderLines(orderLines);
         return salesOrder;
     }
